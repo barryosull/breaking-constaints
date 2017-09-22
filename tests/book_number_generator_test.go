@@ -8,7 +8,9 @@ import (
 
 func makeBookNumberGenerator() src.BookNumberGenerator {
 
-	return book_number_generator.Make()
+	generator := book_number_generator.Make()
+	generator.Reset()
+	return generator
 }
 
 func TestNumbersAreGeneratedSequentially(t *testing.T) {
@@ -19,7 +21,12 @@ func TestNumbersAreGeneratedSequentially(t *testing.T) {
 
 	first := generator.GenerateNumber(categoryId)
 
-	generator.IncrementNumber(categoryId)
+	err := generator.NumberUsed(categoryId, first)
+
+	if (err != nil) {
+		t.Error("Got error")
+		t.Error(err)
+	}
 
 	second := generator.GenerateNumber(categoryId)
 
@@ -29,5 +36,28 @@ func TestNumbersAreGeneratedSequentially(t *testing.T) {
 
 	if (second != 2) {
 		t.Error("Expected 2, got "+string(second)+", number not incremented correctly")
+	}
+}
+
+func TestCannotHaveDuplicateNumersInCategory(t *testing.T) {
+
+	generator := makeBookNumberGenerator();
+
+	categoryId := 1
+
+	number := generator.GenerateNumber(categoryId)
+
+	err := generator.NumberUsed(categoryId, number)
+
+	if (err != nil) {
+		t.Error("Got error")
+		t.Error(err)
+	}
+
+	err = generator.NumberUsed(categoryId, number)
+
+	if (err == nil) {
+		t.Error("Expected error, not nothing")
+		t.Error(err)
 	}
 }
